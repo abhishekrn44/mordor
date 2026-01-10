@@ -1,46 +1,31 @@
 Mordor
+Mordor is a custom HTTP server built from scratch over raw TCP using Go, created to understand how web servers work at a low level. It focuses on learning core concepts like sockets, request parsing, routing, and response generation—without relying on high-level frameworks.
+In true Lord of the Rings fashion: one server to rule them all, one server to bind them, one server to bring them all, and in the logs debug them.
 
-Mordor is a custom HTTP server built from scratch over raw TCP, created to understand how web servers work at a low level. It focuses on learning core concepts like sockets, request parsing, routing, and response generation without relying on high-level frameworks.
+*Goals*
+Master how HTTP works internally
+Build TCP networking from the ground up
+Parse HTTP requests manually
+Craft HTTP responses by hand
+Tame concurrency and connection handling
 
-Goals
+*Status*
+Mordor is currently in development.
+It is not meant for production—this is a learning quest, not a battle-hardened fortress.
 
-Learn how HTTP works internally
-
-Implement TCP networking from scratch
-
-Manually parse HTTP requests and build responses
-
-Understand concurrency and connection handling
-
-Serve static files and later host a simple React app
-
-Status
-
-Mordor is currently in the development phase.
-It is not intended for production use—this is a learning and experimentation project.
-
-Features (In Progress)
-
-Raw TCP server
-
+*Features (Forged So Far)*
+Raw TCP server (forged in the fires of sockets)
 Basic HTTP request parsing
-
-Simple routing
-
+Simple routing paths
 Text and static file responses
+Connection lifecycle management
 
-Connection lifecycle handling
-
-Planned
-
+*Planned (Yet to Be Forged)*
 Static file hosting
-
-Simple React app hosting
-
+Hosting a simple React app
 Better error handling
-
-Logging and debugging tools
+Logging worthy of the Red Book of Westmarch
 
 Why “Mordor”?
-
-Because this is where things get built the hard way.
+Because great power is not given lightly.
+To build a server from nothing, you must walk into Mordor and write every line yourself.
