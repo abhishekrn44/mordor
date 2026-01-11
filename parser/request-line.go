@@ -2,86 +2,31 @@ package parser
 
 import (
 	"fmt"
-	"log"
-	"net"
-	"rana/mordor/http"
 	"strings"
 )
 
-func ReadMessage(conn net.Conn) (http.Request, error) {
-
-	var buf []byte = make([]byte, 1024)
-
-	count, err := conn.Read(buf[:])
-
-	if err != nil {
-		log.Fatalln(err)
-		return http.Request{}, err
-	}
-
-	var str strings.Builder
+// Parses METHOD SP REQUEST-TARGET SP HTTP-VERSION CRLF
+func ReadStartLine(data []byte) ([]string, int, error) {
 	pos := 0
+	var line strings.Builder
 
-	for ; pos < count; pos++ {
-		if buf[pos] == '\r' {
-			break
-		}
-		str.WriteByte(buf[pos])
+	for pos < len(data) && data[pos] != '\r' {
+		line.WriteByte(data[pos])
+		pos++
 	}
 
-	startLine := str.String()
-	comps := strings.Split(startLine, " ")
-
-	if len(comps) < 3 {
-		return http.Request{}, fmt.Errorf("invalid request line")
+	// Must end with CRLF
+	if pos+1 >= len(data) || data[pos] != '\r' || data[pos+1] != '\n' {
+		return nil, -1, fmt.Errorf("malformed request line (missing CRLF)")
 	}
 
-	pos += 2
-	str.Reset()
+	startLine := line.String()
+	parts := strings.Fields(startLine)
 
-	eof := false
-	headers := make(map[string]string)
-
-	for !eof {
-		eof, err, pos = readHeaders(buf, pos, headers)
-		if err != nil {
-			return http.Request{}, fmt.Errorf("invalid request line")
-		}
-		pos += 2
+	if len(parts) != 3 {
+		return nil, -1, fmt.Errorf("invalid request line: %q", startLine)
 	}
 
-	request := http.Request{
-		Method:      comps[0],
-		Target:      comps[1],
-		Version:     comps[2],
-		Headers:     headers,
-		MessageBody: nil,
-	}
-
-	return request, nil
-}
-
-func readHeaders(buf []byte, pos int, headers map[string]string) (bool, error, int) {
-
-	if buf[pos] == '\r' {
-		return true, nil, pos
-	}
-
-	var str strings.Builder
-
-	for ; pos < len(buf); pos++ {
-		if buf[pos] == '\r' {
-			break
-		}
-		str.WriteByte(buf[pos])
-	}
-	header := str.String()
-	header_comps := strings.SplitN(header, ":", 2)
-
-	if len(header_comps) != 2 {
-		return false, fmt.Errorf("invalid header line"), pos
-	}
-
-	headers[header_comps[0]] = header_comps[1]
-	return false, nil, pos
+	pos += 2 // consume \r\n
+	return parts, pos, nil
 }

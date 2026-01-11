@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"rana/mordor/config/server"
+	"rana/mordor/http"
 	"rana/mordor/parser"
 	"strconv"
 )
@@ -24,27 +25,29 @@ func StartHttpServer() {
 
 		log.Println("client connected", conn.RemoteAddr())
 
-		_, err = parser.ReadMessage(conn)
-		if err != nil {
+		request, response := parser.ReadRequest(conn)
+
+		if response.StatusCode != http.StatusOK && response.StatusCode != 0 {
+			http.WriteError(response, conn)
 			conn.Close()
-			log.Fatalln(err)
 			continue
 		}
 
-		response := "HTTP/1.1 200 OK\r\n" +
+		_ = request
+
+		resp := "HTTP/1.1 200 OK\r\n" +
 			"Content-Type: text/html; charset=utf-8\r\n" +
-			"Content-Length: 45\r\n" +
+			"Content-Length: 236\r\n" +
 			"Connection: keep-alive\r\n" +
 			"\r\n" +
-			"<html><body><h1>Hello HTTP</h1></body></html>"
+			"<!DOCTYPE html><html><head><style>html { color-scheme: light dark; } body { width: 35em; margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif; }</style></head><body style = {background: black}><h1>Hello HTTP</h1></body></html>"
 
-		_, err = conn.Write([]byte(response))
+		_, err = conn.Write([]byte(resp))
 
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
-
-		conn.Close()
 		log.Println("client disconnected", conn.RemoteAddr())
+		conn.Close()
 	}
 }
