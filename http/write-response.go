@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func WriteError(response *Response, w io.Writer) error {
+func WriteResponse(response *Response, w io.Writer) error {
 
 	bw := bufio.NewWriter(w)
 
@@ -47,8 +47,6 @@ func WriteError(response *Response, w io.Writer) error {
 			return err
 		}
 	}
-
-	bw.Available()
 
 	return bw.Flush()
 }

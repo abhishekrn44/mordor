@@ -8,3 +8,5 @@ const (
 	MethodHead = "HEAD"
 	MethodOpts = "OPTIONS"
 )
+
+var Methods []string = []string{MethodGet, MethodPost, MethodPut, MethodDel, MethodHead, MethodOpts}

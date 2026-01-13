@@ -25,28 +25,23 @@ func StartHttpServer() {
 
 		log.Println("client connected", conn.RemoteAddr())
 
-		request, response := parser.ReadRequest(conn)
+		response := parser.ProcessRequest(conn)
 
-		if response.StatusCode != http.StatusOK && response.StatusCode != 0 {
-			http.WriteError(response, conn)
-			conn.Close()
-			continue
-		}
+		err = http.WriteResponse(response, conn)
 
-		_ = request
+		// resp := "HTTP/1.1 200 OK\r\n" +
+		// 	"Content-Type: text/html; charset=utf-8\r\n" +
+		// 	"Content-Length: 236\r\n" +
+		// 	"Connection: keep-alive\r\n" +
+		// 	"\r\n" +
+		// 	"<!DOCTYPE html><html><head><style>html { color-scheme: light dark; } body { width: 35em; margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif; }</style></head><body style = {background: black}><h1>Hello HTTP</h1></body></html>"
 
-		resp := "HTTP/1.1 200 OK\r\n" +
-			"Content-Type: text/html; charset=utf-8\r\n" +
-			"Content-Length: 236\r\n" +
-			"Connection: keep-alive\r\n" +
-			"\r\n" +
-			"<!DOCTYPE html><html><head><style>html { color-scheme: light dark; } body { width: 35em; margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif; }</style></head><body style = {background: black}><h1>Hello HTTP</h1></body></html>"
-
-		_, err = conn.Write([]byte(resp))
+		// _, err = conn.Write([]byte(resp))
 
 		if err != nil {
 			log.Println(err)
 		}
+
 		log.Println("client disconnected", conn.RemoteAddr())
 		conn.Close()
 	}
