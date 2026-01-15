@@ -53,14 +53,14 @@ import (
 // 	return headers, pos, nil
 // }
 
-func readHeaders(r *bufio.Reader) (map[string]string, *http.Response) {
+func readHeaders(r *bufio.Reader) (map[string]string, int) {
 	headers := make(map[string]string)
 
 	for {
 		line, err := r.ReadString('\n')
 		if err != nil {
 			log.Println("read header error:", err)
-			return nil, http.ErrorResponse(http.StatusBadRequest)
+			return nil, http.StatusBadRequest
 		}
 
 		if line == "\r\n" {
@@ -71,7 +71,7 @@ func readHeaders(r *bufio.Reader) (map[string]string, *http.Response) {
 		kv := strings.SplitN(raw, ":", 2)
 		if len(kv) != 2 {
 			log.Println("invalid header line:", raw)
-			return nil, http.ErrorResponse(http.StatusBadRequest)
+			return nil, http.StatusBadRequest
 		}
 
 		key := strings.ToLower(strings.TrimSpace(kv[0]))
@@ -79,5 +79,5 @@ func readHeaders(r *bufio.Reader) (map[string]string, *http.Response) {
 		headers[key] = val
 	}
 
-	return headers, nil
+	return headers, 0
 }

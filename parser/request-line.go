@@ -33,19 +33,20 @@ import (
 // }
 
 // Parses METHOD SP REQUEST-TARGET SP HTTP-VERSION CRLF
-func readStartLine(r *bufio.Reader) (method, target, version string, resp *http.Response) {
+func readStartLine(r *bufio.Reader) (method, target, version string, statusCode int) {
+	log.Println("Reading start-line")
 	line, err := r.ReadString('\n')
 	if err != nil {
 		log.Println("read start-line error:", err)
-		return "", "", "", http.ErrorResponse(http.StatusBadRequest)
+		return "", "", "", http.StatusBadRequest
 	}
 
 	line = strings.TrimRight(line, "\r\n")
 	parts := strings.Fields(line)
 	if len(parts) != 3 {
 		log.Println("invalid request line:", line)
-		return "", "", "", http.ErrorResponse(http.StatusBadRequest)
+		return "", "", "", http.StatusBadRequest
 	}
 
-	return parts[0], parts[1], parts[2], nil
+	return parts[0], parts[1], parts[2], 0
 }
