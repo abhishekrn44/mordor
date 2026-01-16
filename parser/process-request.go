@@ -17,7 +17,7 @@ func ProcessRequest(conn net.Conn) (*http.Request, int) {
 
 	log.Printf("%s %s %s", method, target, version)
 
-	if code == 0 {
+	if code != 0 {
 		return nil, code
 	}
 
@@ -27,13 +27,13 @@ func ProcessRequest(conn net.Conn) (*http.Request, int) {
 
 	headers, code := readHeaders(r)
 
-	if code == 0 {
+	if code != 0 {
 		return nil, code
 	}
 
 	messageBody, code := readBody(r, headers)
 
-	if code == 0 {
+	if code != 0 {
 		return nil, code
 	}
 
@@ -44,6 +44,8 @@ func ProcessRequest(conn net.Conn) (*http.Request, int) {
 		Headers:     headers,
 		MessageBody: messageBody,
 	}
+
+	log.Println("Reqest", request)
 
 	return request, 0
 
