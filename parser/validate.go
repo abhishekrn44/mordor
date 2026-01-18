@@ -5,7 +5,7 @@ import (
 	"slices"
 )
 
-// TODO: Validate request for supported HTTP Version and Method.
+// Validate request for supported HTTP Version and Method.
 func ValidateStartLine(method, version string) int {
 
 	if version != http.Version11 {

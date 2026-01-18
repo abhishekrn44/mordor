@@ -4,48 +4,52 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"rana/mordor/config/server"
 	"rana/mordor/http"
-	"strconv"
 	"strings"
 )
 
 func Serve(req *http.Request) *http.Response {
 	path := req.Target
 
+	log.Println("Serving for path:", path)
+
+	// TODO: route handling to be added here
 	if path == "/" {
 		path = "static/default.html"
 	}
 
-	// Prevent path traversal
-	if strings.Contains(path, "..") {
-		return http.ErrorResponse(http.StatusNotFound)
+	if path == "/emp" {
+		path = "emp/index.html"
 	}
 
-	data, err := os.ReadFile(path)
+	// Prevent path traversal
+	if strings.Contains(path, "..") {
+		return http.NewErrorResponse(http.StatusNotFound, http.DeriveResponseHeaders(req))
+	}
+
+	fullPath := filepath.Join(server.BaseDir, filepath.Clean(path))
+
+	data, err := os.ReadFile(fullPath)
 
 	if err != nil {
 		log.Println("read file error:", err)
-		return http.ErrorResponse(http.StatusNotFound)
+		return http.NewErrorResponse(http.StatusNotFound, http.DeriveResponseHeaders(req))
 	}
 
 	ct := detectContentType(path)
 
-	return &http.Response{
-		StatusCode: 200,
-		Status:     "OK",
-		Headers: map[string]string{
-			"Content-Type":   ct,
-			"Content-Length": strconv.Itoa(len(data)),
-			"Connection":     "close",
-		},
-		Body: data,
-	}
+	return http.NewResponse(http.StatusOK, data, map[string]string{
+		http.HeaderContentType: ct,
+		http.HeaderConnection:  req.Headers[strings.ToLower(http.HeaderConnection)],
+	})
+
 }
 
 func detectContentType(path string) string {
 	switch filepath.Ext(path) {
 	case ".html":
-		return http.ContentTypeTextPlain
+		return http.ContentTypeHTML
 	case ".css":
 		return http.ContentTypeCSS
 	case ".js":
@@ -54,6 +58,8 @@ func detectContentType(path string) string {
 		return http.ContentTypePNG
 	case ".jpg", ".jpeg":
 		return http.ContentTypeJPEG
+	case ".svg":
+		return http.ContentTypeSVG
 	default:
 		return http.ContentTypeOctet
 	}

@@ -1,6 +1,9 @@
 package http
 
-import "strconv"
+import (
+	"log"
+	"strconv"
+)
 
 type Response struct {
 	Version    string // e.g. HTTP/1.1
@@ -25,8 +28,8 @@ func NewResponse(statusCode int, body []byte, extraHeaders map[string]string) *R
 	headers := make(map[string]string, 8)
 
 	// Defaults
-	headers[HeaderConnection] = "close"
 	headers[HeaderContentLength] = strconv.Itoa(len(body))
+	headers[HeaderConnection] = "close"
 
 	// Merge caller headers (override defaults if needed)
 	for k, v := range extraHeaders {
@@ -42,20 +45,14 @@ func NewResponse(statusCode int, body []byte, extraHeaders map[string]string) *R
 	}
 }
 
-// helper for common text responses.
-func NewTextResponse(statusCode int, text string) *Response {
-	return NewResponse(statusCode, []byte(text), map[string]string{
-		HeaderContentType: ContentTypeTextPlain,
-	})
-}
+// helper for error responses.
+func NewErrorResponse(statusCode int, headers map[string]string) *Response {
+	log.Println("creating error response for status code:", statusCode)
+	body, ct := getBody(statusCode)
 
-// returns a minimal text/plain error response.
-// If msg is empty, uses the standard reason phrase as the body.
-func NewErrorResponse(statusCode int, msg string) *Response {
-	if msg == "" {
-		msg = ReasonPhrase(statusCode)
+	if headers != nil {
+		headers[HeaderContentType] = ct
 	}
-	return NewResponse(statusCode, []byte(msg), map[string]string{
-		HeaderContentType: ContentTypeTextPlain,
-	})
+
+	return NewResponse(statusCode, body, headers)
 }

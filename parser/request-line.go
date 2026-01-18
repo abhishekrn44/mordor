@@ -2,7 +2,9 @@ package parser
 
 import (
 	"bufio"
+	"io"
 	"log"
+	"net"
 	"rana/mordor/http"
 	"strings"
 )
@@ -38,7 +40,14 @@ func readStartLine(r *bufio.Reader) (method, target, version string, statusCode 
 	line, err := r.ReadString('\n')
 	if err != nil {
 		log.Println("read start-line error:", err)
-		return "", "", "", http.StatusBadRequest
+
+		if err == io.EOF {
+			return "", "", "", -1
+		} else if ne, ok := err.(net.Error); ok && ne.Timeout() {
+			return "", "", "", -1
+		} else {
+			return "", "", "", http.StatusBadRequest
+		}
 	}
 
 	line = strings.TrimRight(line, "\r\n")

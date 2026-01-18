@@ -7,29 +7,38 @@ import (
 	"rana/mordor/parser"
 	"rana/mordor/routes"
 	"strings"
+	"time"
 )
 
 func handleConnection(c net.Conn) {
 	defer c.Close()
 
 	log.Println("client connected", c.RemoteAddr())
+	client_count++
+	log.Println("active connections:", client_count)
 
 	for {
-		request, errCode := parser.ProcessRequest(c)
+		request, errCode := parser.ParseRequest(c)
 
-		log.Println("COC", request, errCode)
+		if errCode == -1 {
+			log.Println("client closed connection")
+			break
+		}
 
 		if errCode != 0 {
-			if err := http.WriteResponse(http.ErrorResponse(errCode), c); err != nil {
+			if err := http.WriteResponse(http.NewErrorResponse(errCode, http.DeriveResponseHeaders(request)), c); err != nil {
 				log.Println("error writing err:", err)
 				break
 			}
 		}
 
-		// TODO: select the appropriate handler based on the request’s method and target, invokes it, and return the resulting HTTP response.
+		// based on request’s method, path, and target; return the resulting HTTP response.
 		response := routes.Serve(request)
+		c.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-		// var response *http.Response
+		if err := http.WriteResponse(response, c); err != nil {
+			log.Println("response write error:", err)
+		}
 
 		connectionRequestHeader := strings.TrimSpace(request.Headers[http.HeaderConnection])
 		connectionResponseHeader := strings.TrimSpace(response.Headers[http.HeaderConnection])
@@ -42,7 +51,9 @@ func handleConnection(c net.Conn) {
 			break
 		}
 
-	}
+		c.SetReadDeadline(time.Now().Add(15 * time.Second))
 
-	log.Println("client disconnected", c.RemoteAddr())
+	}
+	client_count--
+	log.Println("active connections:", client_count)
 }

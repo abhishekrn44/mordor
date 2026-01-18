@@ -5,11 +5,14 @@ import (
 	"log"
 	"net"
 	"rana/mordor/http"
+	"time"
 )
 
-func ProcessRequest(conn net.Conn) (*http.Request, int) {
+func ParseRequest(conn net.Conn) (*http.Request, int) {
 
 	log.Println("Processing request")
+
+	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 	r := bufio.NewReader(conn)
 
@@ -44,8 +47,6 @@ func ProcessRequest(conn net.Conn) (*http.Request, int) {
 		Headers:     headers,
 		MessageBody: messageBody,
 	}
-
-	log.Println("Reqest", request)
 
 	return request, 0
 
